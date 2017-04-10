@@ -3,6 +3,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 import java.awt.*; // for layout
+import java.awt.event.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -10,18 +11,27 @@ import java.io.File;
 import java.io.IOException;
 
 public class MyFrame extends JFrame {
-	private JLabel label;
-	private JButton button;
-	private JButton button1;
 
-	private JPanel panel;
+	private JLabel infoText;
+	private JButton passButton;
+	public JPanel panel;
 
 	Board newBoard = new Board();
-	square newSquare;
 	squareButton[] buttonArray = new squareButton[500];
 	Deck deck = new Deck();
+   
+   JButton discardPile;
+   
+   boolean shouldSwitch = false;
+   square pawnToSwitch;
+   square firstPawnForSplit;
+   boolean sevenCard = false;
+   boolean sorryCard = false;
+   boolean tenCard = false;
+   boolean elevenCard = false;
+   boolean shouldSplit = false;
 
-	JButton discardPile;
+   //initialize icons for the cards
 	ImageIcon blankCard = new ImageIcon("icons/blankcard.png");
 	ImageIcon card1 = new ImageIcon("icons/1card.png");
 	ImageIcon card2 = new ImageIcon("icons/2card.png");
@@ -36,10 +46,14 @@ public class MyFrame extends JFrame {
 	ImageIcon cardSorry = new ImageIcon("icons/sorrycard.png");
 	ImageIcon card = new ImageIcon("icons/card.png");
 
-	int cardNumber;
+   
+   //global value for the number of the current card drawn
+	public int cardNumber;
 
-	int tileNumber;
+   //global value for the number of the most recently clicked tile
+	public int tileNumber;
 
+   
 	public Card currentCard;
 
 	public String currentColor;
@@ -49,29 +63,9 @@ public class MyFrame extends JFrame {
 
 	MyFrame(String s) throws IOException {
 		super(s);
-		// implicit this
 		setLayout(new FlowLayout());
 
 		deck.shuffle();
-
-		panel = new JPanel();
-
-		panel.setBackground(Color.CYAN);
-		panel.setLayout(new GridLayout(16, 16));
-
-		// BufferedImage large = ImageIO.read(new File("src/icons/blank.png"));
-		// BufferedImage small = ImageIO.read(new
-		// File("src/icons/bluePawn.png"));
-		// BufferedImage combined = new BufferedImage(40, 40,
-		// BufferedImage.TYPE_INT_ARGB);
-		// paint both images, preserving the alpha channels
-		// Graphics g = combined.getGraphics();
-		// g.drawImage(large, 0, 0, null);
-		// g.drawImage(small, 0, 0, null);
-
-		// ImageIO.write(combined, "PNG", new File("twoInOne.png"));
-
-		// ImageIcon icon1 = new ImageIcon(combined);
 
 		ImageIcon blankIcon = new ImageIcon("icons/blank.png");
 		ImageIcon endZone = new ImageIcon("icons/endZone.png");
@@ -92,7 +86,13 @@ public class MyFrame extends JFrame {
 		ImageIcon yellowArrow = new ImageIcon("icons/yellowArrow.png");
 		ImageIcon yellowLine = new ImageIcon("icons/yellowLine.png");
 		ImageIcon yellowCircle = new ImageIcon("icons/yellowCircle.png");
+      
+      //initialize panel settings
+      panel = new JPanel();
+		panel.setBackground(Color.CYAN);
+		panel.setLayout(new GridLayout(16, 16));
 
+      //add row 1 of tiles
 		panel.add(makeSquare("none", "blank", blankIcon, 0));
 		panel.add(makeSquare("yellow", "arrow", yellowArrow, 1));
 		panel.add(makeSquare("yellow", "line", yellowLine, 2));
@@ -109,7 +109,8 @@ public class MyFrame extends JFrame {
 		panel.add(makeSquare("yellow", "circle", yellowCircle, 13));
 		panel.add(makeSquare("none", "blank", blankIcon, 14));
 		panel.add(makeSquare("none", "blank", blankIcon, 15));
-
+      
+      //add row 2 of tiles
 		panel.add(makeSquare("none", "blank", blankIcon, 59));
 		addSpace(1);
 		panel.add(makeSquare("yellow", "safe", yellowSafeZone, 101));
@@ -118,7 +119,8 @@ public class MyFrame extends JFrame {
 		panel.add(makeSquare("yellow", "start", endZone, 112));
 		addSpace(9);
 		panel.add(makeSquare("green", "arrow", greenArrow, 16));
-
+      
+      //add row 3 of tiles
 		panel.add(makeSquare("blue", "circle", blueCircle, 58));
 		addSpace(1);
 		panel.add(makeSquare("yellow", "safe", yellowSafeZone, 102));
@@ -135,6 +137,7 @@ public class MyFrame extends JFrame {
 		panel.add(makeSquare("green", "safe", greenSafeZone, 201));
 		panel.add(makeSquare("green", "line", greenLine, 17));
 
+      //add row 4 of tiles
 		panel.add(makeSquare("blue", "line", blueLine, 57));
 		addSpace(1);
 		panel.add(makeSquare("yellow", "safe", yellowSafeZone, 103));
@@ -143,7 +146,8 @@ public class MyFrame extends JFrame {
 		panel.add(makeSquare("green", "end", endZone, 209));
 		addSpace(5);
 		panel.add(makeSquare("green", "line", greenLine, 18));
-
+      
+      //add row 5 of tiles
 		panel.add(makeSquare("blue", "line", blueLine, 56));
 		addSpace(1);
 		panel.add(makeSquare("yellow", "safe", yellowSafeZone, 104));
@@ -152,6 +156,7 @@ public class MyFrame extends JFrame {
 		panel.add(makeSquare("green", "start", endZone, 211));
 		panel.add(makeSquare("green", "circle", greenCircle, 19));
 
+      //add row 6 of tiles
 		panel.add(makeSquare("blue", "line", blueLine, 55));
 		addSpace(1);
 		panel.add(makeSquare("yellow", "safe", yellowSafeZone, 105));
@@ -160,13 +165,14 @@ public class MyFrame extends JFrame {
 		panel.add(makeSquare("green", "start", endZone, 212));
 		panel.add(makeSquare("none", "blank", blankIcon, 20));
 
+      //add row 7 of tiles
 		panel.add(makeSquare("blue", "arrow", blueArrow, 54));
 		addSpace(1);
 		panel.add(makeSquare("yellow", "end", endZone, 106));
 		panel.add(makeSquare("yellow", "end", endZone, 109));
 		addSpace(3);
 
-		// cards
+		//add drawpile and discard pile tiles
 		Border emptyBorder = BorderFactory.createEmptyBorder();
 		JButton drawPile = new JButton();
 		drawPile.setIcon(card);
@@ -188,6 +194,7 @@ public class MyFrame extends JFrame {
 		addSpace(6);
 		panel.add(makeSquare("none", "blank", blankIcon, 21));
 
+      //add row 8 of tiles
 		panel.add(makeSquare("none", "blank", blankIcon, 53));
 		addSpace(1);
 		panel.add(makeSquare("yellow", "end", endZone, 107));
@@ -195,6 +202,7 @@ public class MyFrame extends JFrame {
 		addSpace(11);
 		panel.add(makeSquare("none", "blank", blankIcon, 22));
 
+      //add row 9 of tiles
 		panel.add(makeSquare("none", "blank", blankIcon, 52));
 		addSpace(11);
 		panel.add(makeSquare("red", "end", endZone, 308));
@@ -202,13 +210,15 @@ public class MyFrame extends JFrame {
 		addSpace(1);
 		panel.add(makeSquare("none", "blank", blankIcon, 23));
 
+      //add row 10 of tiles
 		panel.add(makeSquare("none", "blank", blankIcon, 51));
 		addSpace(11);
 		panel.add(makeSquare("red", "end", endZone, 309));
 		panel.add(makeSquare("red", "end", endZone, 306));
 		addSpace(1);
 		panel.add(makeSquare("green", "arrow", greenArrow, 24));
-
+      
+      //add row 11 of tiles
 		panel.add(makeSquare("none", "blank", blankIcon, 50));
 		panel.add(makeSquare("blue", "start", endZone, 412));
 		panel.add(makeSquare("blue", "start", endZone, 414));
@@ -217,6 +227,7 @@ public class MyFrame extends JFrame {
 		addSpace(1);
 		panel.add(makeSquare("green", "line", greenLine, 25));
 
+      //add row 12 of tiles
 		panel.add(makeSquare("blue", "circle", blueCircle, 49));
 		panel.add(makeSquare("blue", "start", endZone, 411));
 		panel.add(makeSquare("blue", "start", endZone, 413));
@@ -225,6 +236,7 @@ public class MyFrame extends JFrame {
 		addSpace(1);
 		panel.add(makeSquare("green", "line", greenLine, 26));
 
+      //add row 13 of tiles
 		panel.add(makeSquare("blue", "line", blueLine, 48));
 		addSpace(5);
 		panel.add(makeSquare("blue", "end", endZone, 409));
@@ -234,6 +246,7 @@ public class MyFrame extends JFrame {
 		addSpace(1);
 		panel.add(makeSquare("green", "line", greenLine, 27));
 
+      //add row 14 of tiles
 		panel.add(makeSquare("blue", "line", blueLine, 47));
 		panel.add(makeSquare("blue", "safe", blueSafeZone, 401));
 		panel.add(makeSquare("blue", "safe", blueSafeZone, 402));
@@ -250,6 +263,7 @@ public class MyFrame extends JFrame {
 		addSpace(1);
 		panel.add(makeSquare("green", "circle", greenCircle, 28));
 
+      //add row 15 of tiles
 		panel.add(makeSquare("blue", "arrow", blueArrow, 46));
 		addSpace(9);
 		panel.add(makeSquare("red", "start", endZone, 312));
@@ -259,6 +273,7 @@ public class MyFrame extends JFrame {
 		addSpace(1);
 		panel.add(makeSquare("none", "blank", blankIcon, 29));
 
+      //add row 16 of tiles
 		panel.add(makeSquare("none", "blank", blankIcon, 45));
 		panel.add(makeSquare("none", "blank", blankIcon, 44));
 		panel.add(makeSquare("red", "circle", redCircle, 43));
@@ -276,25 +291,19 @@ public class MyFrame extends JFrame {
 		panel.add(makeSquare("red", "arrow", redArrow, 31));
 		panel.add(makeSquare("none", "blank", blankIcon, 30));
 
-		label = new JLabel("Click on the deck to start");
-		add(label);
-
-		button1 = new JButton("Pass");
-		button1.addActionListener(new ButtonListener3());
-		add(button1);
-
+		infoText = new JLabel("Click on the deck to start");
+		passButton = new JButton("Pass");
+		passButton.addActionListener(new PassButtonListener());
+      
+      //add all elements to the frame
+      add(infoText);
+		add(passButton);
 		add(panel);
-
-		// Pawn yellow1 = new Pawn("yellow");
-		// square temp = newBoard.getSquare(111);
-		// temp.setPawn(yellow1);
-		// newBoard.setSquare(temp);
-
 	}
 
 	public squareButton makeSquare(String color, String type, ImageIcon icon,
 			int number) throws IOException {
-		newSquare = new square(type, color, number);
+		square newSquare = new square(type, color, number);
 		newBoard.setSquare(newSquare);
 
 		Border emptyBorder = BorderFactory.createEmptyBorder();
@@ -313,7 +322,7 @@ public class MyFrame extends JFrame {
 		button.setContentAreaFilled(false);
 		button.setBorder(emptyBorder);
 		button.setPreferredSize(new Dimension(42, 42));
-		button.addActionListener(new ButtonListener(number));
+		button.addActionListener(new TileButtonListener(number));
 		buttonArray[number] = button;
 		return button;
 	}
@@ -445,14 +454,18 @@ public class MyFrame extends JFrame {
 
 	}
 
-	class ButtonListener implements ActionListener {
+	class TileButtonListener implements ActionListener {
 		public int TileNumber;
+      
+      int firstSplit = 0;
+      int secondSplit = 0;
 
-		ButtonListener(int number) {
+		TileButtonListener(int number) {
 			TileNumber = number;
 		}
 
 		public void actionPerformed(ActionEvent e) {
+         
 			if (squareClickable) {
 
 				square tempSquare = newBoard.getSquare(TileNumber);
@@ -461,155 +474,332 @@ public class MyFrame extends JFrame {
 
 				if (cardNumber == 4)
 					cardNumber = -4;
+               
+            if (cardNumber == 7)
+               sevenCard = true;
+               
+            if (cardNumber == 0)
+               sorryCard = true;
+               
+            if (cardNumber == 10)
+               tenCard = true;
+               
+            if (cardNumber == 11)
+               elevenCard = true;
+              
+            // if the button is set to shouldSwitch then the user should select the piece they want to switch with
+            if (shouldSwitch) {
+               if (tempSquare.hasPawn()) {
+                  if (!(tempSquare.getPawnColor().equals(currentColor))) {
+                     if (tempSquare.getPosition() > 100) {
+   							infoText.setText("Your pawn cannot be placed here");
+   						} else {
+                        int tempPosition1 = pawnToSwitch.getPosition();
+                        int tempPosition2 = tempSquare.getPawn().getStartPosition();
+                        movePawn(tempSquare,tempPosition2);
+                        movePawn(pawnToSwitch,tempSquare.getPosition());
+                        movePawn(newBoard.getSquare(tempPosition2),tempPosition1);
+                        shouldSwitch = false;
+                        elevenCard = false;
+                     }
+                     
+                     
+                  } else {
+                     infoText.setText("This is your own pawn");
+                  }
+               } else {
+                  infoText.setText("There is no pawn here");
+               }
+            
+            } else if (shouldSplit) {
+               if (tempSquare.hasPawn()) {
+                  if (tempSquare.getPawnColor().equals(currentColor)) {
+                     if (tempSquare.getPosition() != firstPawnForSplit.getPosition()) {
+                        String[] buttons = { "1/6", "2/5", "3/4", "4/3","5/2","6/1"};    
+                        int returnValue = JOptionPane.showOptionDialog(null, "Select the split between the first and second pawn selected respectively", "Select a Split",
+                           JOptionPane.WARNING_MESSAGE, 0, null, buttons, buttons[0]);
+                        int firstPawnSplit = 1 + returnValue;
+                        int secondPawnSplit = 6 - returnValue;
+                        while (findNewPosition(firstPawnForSplit,firstPawnSplit) == -1 || findNewPosition(tempSquare,secondPawnSplit) == -1) {
+                           returnValue = JOptionPane.showOptionDialog(null, "This split did not work, try a different one", "Select a Split",
+                              JOptionPane.WARNING_MESSAGE, 0, null, buttons, buttons[0]);
+                           firstPawnSplit = 1 + returnValue;
+                           secondPawnSplit = 6 - returnValue;
+                        }
+                        movePawn(firstPawnForSplit,findNewPosition(firstPawnForSplit,firstPawnSplit));
+                        movePawn(tempSquare,findNewPosition(tempSquare,secondPawnSplit));
+                        shouldSplit = false;
+                        sevenCard = false;
+                     } else {
+                        infoText.setText("You already selected this pawn");
+                     }
+   					} else {
+   						infoText.setText("Incorrect Color");
+   					}
+               } else {
+                  infoText.setText("There is no pawn here");
+               }
+               
+            //if the card is a sorry card, the user should select the pawn they want to bump
+            } else if (sorryCard) {
+               if (tempSquare.hasPawn()) {
+                  if (!(tempSquare.getPawnColor().equals(currentColor))) {
+                     if (tempSquare.getPosition() > 100) {
+   							infoText.setText("Your pawn cannot be placed here");
+   						} else {
+                        square pawnToMove = null;
+                        int startingNumber = 0;
+                        if (currentColor.equals("yellow")) {
+                           startingNumber = 111;
+                        } else if (currentColor.equals("green")) {
+                           startingNumber = 211;
+                        } else if (currentColor.equals("red")) {
+                           startingNumber = 311;
+                        } else if (currentColor.equals("blue")) {
+                           startingNumber = 411;
+                        }
+                        for (int i = startingNumber; i < startingNumber+4; i++) {
+                           if (newBoard.getSquare(i).hasPawn()) {
+                              pawnToMove = newBoard.getSquare(i);
+                           }
+                        }
+                        if (pawnToMove == null) {
+                           infoText.setText("You have no pawns in your home");
+                        } else {
+                           movePawn(pawnToMove,tempSquare.getPosition());
+                        }
+                        sorryCard = false;
+                     }
+                     
+                     
+                  } else {
+                     infoText.setText("This is your own pawn");
+                  }
+               } else {
+                  infoText.setText("There is no pawn here");
+               }
+            //if there is no special rule, handle the piece movement normally
+            } else {
 
-				if (tempSquare.hasPawn()) {
-					if (tempSquare.getPawnColor().equals(currentColor)) {
-
-						//test to see if
-						if (tempSquare.getPosition() > 410
-								&& tempSquare.getPosition() < 420) {
-							if (!(cardNumber == 1 || cardNumber == 2)) {
-								label.setText("You need a 1, 2, or sorry to exit");
-							} else {
-								int newPosition = 48 + cardNumber;
-								movePawn(tempSquare, newPosition);
-							}
-						} else if (tempSquare.getPosition() > 310
-								&& tempSquare.getPosition() < 320) {
-							if (!(cardNumber == 1 || cardNumber == 2)) {
-								label.setText("You need a 1, 2, or sorry to exit");
-							} else {
-								int newPosition = 33 + cardNumber;
-								movePawn(tempSquare, newPosition);
-							}
-						} else if (tempSquare.getPosition() > 210
-								&& tempSquare.getPosition() < 220) {
-							if (!(cardNumber == 1 || cardNumber == 2)) {
-								label.setText("You need a 1, 2, or sorry to exit");
-							} else {
-								int newPosition = 18 + cardNumber;
-								movePawn(tempSquare, newPosition);
-							}
-						} else if (tempSquare.getPosition() > 110
-								&& tempSquare.getPosition() < 120) {
-							if (!(cardNumber == 1 || cardNumber == 2)) {
-								label.setText("You need a 1, 2, or sorry to exit");
-							} else {
-								int newPosition = 3 + cardNumber;
-								movePawn(tempSquare, newPosition);
-							}
-						} else {
-							int currentPosition = tempSquare.getPosition();
-
-							int newPosition = tempSquare.getPosition()
-									+ cardNumber;
-
-
-
-							//if going around the board
-							if (currentPosition < 100) {
-								if (newPosition > 59) {
-									newPosition -= 60;
-									currentPosition -= 60;
-								}
-								// test to see if past endzone
-								for (int i = currentPosition; i < newPosition; i++) {
-									if (i == 2
-											&& tempSquare.getPawnColor().equals("yellow")) {
-										int length = newPosition - i;
-										newPosition = 100 + length;
-									}
-								}
-								for (int i = currentPosition; i < newPosition; i++) {
-									if (i == 17 && tempSquare.getPawnColor().equals("green")) {
-										int length = newPosition - i;
-										newPosition = 200 + length;
-									}
-								}
-								for (int i = currentPosition; i < newPosition; i++) {
-									if (i == 32 && tempSquare.getPawnColor().equals("red")) {
-										int length = newPosition - i;
-										newPosition = 300 + length;
-									}
-								}
-								for (int i = currentPosition; i < newPosition; i++) {
-									if (i == 47 && tempSquare.getPawnColor().equals("blue")) {
-										int length = newPosition - i;
-										newPosition = 400 + length;
-									}
-								}
-							}
-
-							if (newPosition > 106 && newPosition < 200) {
-								label.setText("You can't go this far");
-							} else if (newPosition > 206 && newPosition < 300) {
-								label.setText("You can't go this far");
-							} else if (newPosition > 306 && newPosition < 400) {
-								label.setText("You can't go this far");
-							} else if (newPosition > 406 && newPosition < 500) {
-								label.setText("You can't go this far");
-							} else {
-								// check if pawn in endzone
-								if (newPosition == 106 || newPosition == 206 || newPosition == 306 || newPosition == 406) {
-									newPosition = tempSquare.getPawn().getStartPosition() - 5;
-								}
-								movePawn(tempSquare, newPosition);
-							}
-
-						}
-					} else {
-						label.setText("Incorrect Color");
-					}
-
-				} else {
-					label.setText("There is no pawn here");
-				}
-
-				Component[] component = panel.getComponents();
-				for (int i = 0; i < 256; i++) {
-					if (component[i] instanceof squareButton) {
-						squareButton button = (squareButton) component[i];
-						if (button.getSquare().hasPawn()) {
-							button.setIcon(button.getPawn(button.getSquare()
-									.getPawnColor()));
-						} else {
-							button.setIcon(button.getOriginal());
-						}
-					}
-				}
+   				if (tempSquare.hasPawn()) {
+   					if (tempSquare.getPawnColor().equals(currentColor)) {
+                     int newPosition = findNewPosition(tempSquare,cardNumber);
+                     if (newPosition != -1) {
+                        movePawn(tempSquare,newPosition);
+                     }
+   					} else {
+   						infoText.setText("Incorrect Color");
+   					}
+   
+   				} else {
+   					infoText.setText("There is no pawn here");
+   				}
+            
+            }
+				updateIcons();
 			}
-
-			//check to see if someone wins
-			if (newBoard.getSquare(106).hasPawn() && newBoard.getSquare(107).hasPawn() && newBoard.getSquare(108).hasPawn() && newBoard.getSquare(109).hasPawn()) {
-				label.setText("Yellow wins!");
+         checkForWinner();
+		}
+      
+      public int findNewPosition (square tempSquare, int cardNumber) {
+         int newPosition = -1;
+         //test to see if pawn is in start
+   		if (tempSquare.getPosition() > 410
+   				&& tempSquare.getPosition() < 420) {
+   			if (!(cardNumber == 1 || cardNumber == 2)) {
+   				infoText.setText("You need a 1, 2, or sorry to exit");
+   			} else {
+   				newPosition = 48 + cardNumber;
+   			}
+   		} else if (tempSquare.getPosition() > 310
+   				&& tempSquare.getPosition() < 320) {
+   			if (!(cardNumber == 1 || cardNumber == 2)) {
+   				infoText.setText("You need a 1, 2, or sorry to exit");
+   			} else {
+   				newPosition = 33 + cardNumber;
+   			}
+   		} else if (tempSquare.getPosition() > 210
+   				&& tempSquare.getPosition() < 220) {
+   			if (!(cardNumber == 1 || cardNumber == 2)) {
+   				infoText.setText("You need a 1, 2, or sorry to exit");
+   			} else {
+   				newPosition = 18 + cardNumber;
+   			}
+   		} else if (tempSquare.getPosition() > 110
+   				&& tempSquare.getPosition() < 120) {
+   			if (!(cardNumber == 1 || cardNumber == 2)) {
+   				infoText.setText("You need a 1, 2, or sorry to exit");
+   			} else {
+   				newPosition = 3 + cardNumber;
+   			}
+   		} else {
+            //if the pawn is not in the start
+   			int currentPosition = tempSquare.getPosition();
+            
+            if (sevenCard && !shouldSplit) {
+               int n = JOptionPane.showOptionDialog(new JFrame(), "Would you like to move 7 spaces or split with another pawn?", 
+               "Select an Option", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, 
+               null, new Object[] {"Forward 7", "Split"}, JOptionPane.YES_OPTION);
+               if (n == 1) {
+                  boolean hasAnotherPawn = false;
+                  for (int i = 0; i < 59; i++) {
+                     if (newBoard.getSquare(i).hasPawn()) {
+                        if (newBoard.getSquare(i).getPawnColor().equals(currentColor) && i != tempSquare.getPosition()) {
+                           hasAnotherPawn = true;
+                        }
+                     }
+                  }
+                  if (hasAnotherPawn) {
+                     infoText.setText("Select a pawn to split with");
+                     firstPawnForSplit = tempSquare;
+                     shouldSplit = true;
+                     newPosition = -1;
+                  } else {
+                     infoText.setText("You don't have a pawn available to split with");
+                     newPosition = currentPosition + cardNumber;
+                  }
+               } else {
+                  newPosition = currentPosition + cardNumber;
+               }
+               sevenCard = false;
+            } else if (tenCard) {
+               int n = JOptionPane.showOptionDialog(new JFrame(), "Would you like to move 10 spaces forward or one space backward?", 
+               "Select an Option", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, 
+               null, new Object[] {"Forward 10", "Backward 1"}, JOptionPane.YES_OPTION);
+               if (n == 1) {
+                  cardNumber = -1;
+               }
+               newPosition = currentPosition + cardNumber;
+               tenCard = false;
+            } else if (elevenCard && !shouldSwitch) {
+               int n = JOptionPane.showOptionDialog(new JFrame(), "Would you like to move 11 spaces forward or switch spaces with an opponent's pawn?", 
+               "Select an Option", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, 
+               null, new Object[] {"Forward 11", "Switch"}, JOptionPane.YES_OPTION);
+               if (n == 1) {
+                  if (currentPosition > 100) {
+                     infoText.setText("You are not in a valid location to switch");
+                     newPosition = currentPosition + cardNumber;
+                  } else {
+                     boolean pawnAvailableToSwitch = false;
+                     for (int i = 0; i < 59; i++) {
+                        if (newBoard.getSquare(i).hasPawn()) {
+                           if (!newBoard.getSquare(i).getPawnColor().equals(currentColor)) {
+                              pawnAvailableToSwitch = true;
+                           }
+                        }
+                     }
+                     if (pawnAvailableToSwitch) {
+                        shouldSwitch = true;
+                        pawnToSwitch = tempSquare;
+                        infoText.setText("Select a pawn to switch with");
+                        newPosition = -1;
+                     } else {
+                        infoText.setText("There is no pawn to switch with");
+                        newPosition = currentPosition + cardNumber;
+                     }
+                  }
+               } else {
+                  newPosition = currentPosition + cardNumber;
+               }
+               elevenCard = false;
+            } else {
+   			   newPosition = currentPosition + cardNumber;
+            }
+   
+   
+   
+   			//check to see if pawn is on the outside of the board
+   			if (currentPosition < 100) {
+               //if the pawn passes start, adjust location to begining of the loop
+   				if (newPosition > 59) {
+   					newPosition -= 60;
+   					currentPosition -= 60;
+   				}
+   				// test to see if past endzone and adjust to enter endzone
+   				for (int i = currentPosition; i < newPosition; i++) {
+   					if (i == 2 && tempSquare.getPawnColor().equals("yellow")) {
+   						int length = newPosition - i;
+   						newPosition = 100 + length;
+   					} else if (i == 17 && tempSquare.getPawnColor().equals("green")) {
+   						int length = newPosition - i;
+   						newPosition = 200 + length;
+   					} else if (i == 32 && tempSquare.getPawnColor().equals("red")) {
+   						int length = newPosition - i;
+   						newPosition = 300 + length;
+   					} else if (i == 47 && tempSquare.getPawnColor().equals("blue")) {
+   						int length = newPosition - i;
+   						newPosition = 400 + length;
+   					}
+   				}
+   			}
+            
+            //check to see if pawn is past their home
+   			if (newPosition > 106 && newPosition < 200) {
+   				infoText.setText("You can't go this far");
+   			} else if (newPosition > 206 && newPosition < 300) {
+   				infoText.setText("You can't go this far");
+   			} else if (newPosition > 306 && newPosition < 400) {
+   				infoText.setText("You can't go this far");
+   			} else if (newPosition > 406 && newPosition < 500) {
+   				infoText.setText("You can't go this far");
+   			} else {
+   				// check if pawn is in home and place in the appropriate home spot
+   				if (newPosition == 106 || newPosition == 206 || newPosition == 306 || newPosition == 406) {
+   					newPosition = tempSquare.getPawn().getStartPosition() - 5;
+   				}
+   			}
+		   }
+         System.out.println(newPosition);
+         return newPosition;
+      }
+      
+      //method to check for a winner
+      public void checkForWinner() {
+         if (newBoard.getSquare(106).hasPawn() && newBoard.getSquare(107).hasPawn() && newBoard.getSquare(108).hasPawn() && newBoard.getSquare(109).hasPawn()) {
+				infoText.setText("Yellow wins!");
 				JOptionPane.showMessageDialog(null,
 						"Yellow Wins!", "Winner",
 						JOptionPane.PLAIN_MESSAGE);
 				cardClickable = false;
 				squareClickable = false;
 			} else if (newBoard.getSquare(206).hasPawn() && newBoard.getSquare(207).hasPawn() && newBoard.getSquare(208).hasPawn() && newBoard.getSquare(209).hasPawn()){
-				label.setText("Green wins!");
+				infoText.setText("Green wins!");
 				JOptionPane.showMessageDialog(null,
 						"Green Wins!", "Winner",
 						JOptionPane.PLAIN_MESSAGE);
 				cardClickable = false;
 				squareClickable = false;
 			} else if (newBoard.getSquare(306).hasPawn() && newBoard.getSquare(307).hasPawn() && newBoard.getSquare(308).hasPawn() && newBoard.getSquare(309).hasPawn()){
-				label.setText("Red wins!");
+				infoText.setText("Red wins!");
 				JOptionPane.showMessageDialog(null,
 						"Red Wins!", "Winner",
 						JOptionPane.PLAIN_MESSAGE);
 				cardClickable = false;
 				squareClickable = false;
 			} else if (newBoard.getSquare(406).hasPawn() && newBoard.getSquare(407).hasPawn() && newBoard.getSquare(408).hasPawn() && newBoard.getSquare(409).hasPawn()){
-				label.setText("Blue wins!");
+				infoText.setText("Blue wins!");
 				JOptionPane.showMessageDialog(null,
 						"Blue Wins!", "Winner",
 						JOptionPane.PLAIN_MESSAGE);
 				cardClickable = false;
 				squareClickable = false;
 			}
-		}
+      }
+      //method to update all icons to reflect the pawns they have
+      public void updateIcons() {
+         Component[] component = panel.getComponents();
+			for (int i = 0; i < 256; i++) {
+				if (component[i] instanceof squareButton) {
+					squareButton button = (squareButton) component[i];
+					if (button.getSquare().hasPawn()) {
+						button.setIcon(button.getPawn(button.getSquare()
+								.getPawnColor()));
+					} else {
+						button.setIcon(button.getOriginal());
+					}
+				}
+			}
+      }
 		//method for moving pawn correctly
 		public void movePawn(square tempSquare, int position) {
 			Pawn tempPawn = tempSquare.removePawn();
@@ -633,26 +823,30 @@ public class MyFrame extends JFrame {
 
 					if (tempSquare2.getType().equals("arrow") && !(tempPawn.getColor().equals(tempSquare2.getColor()))) {
 						if (tempSquare2.getPosition()==9 || tempSquare2.getPosition()==24 || tempSquare2.getPosition()==39 || tempSquare2.getPosition()==44){
+                     slideBump(tempSquare2.getPosition(),4);
 							tempSquare2 = newBoard.getSquare(tempSquare2.getPosition()+4);
 						} else {
+                     slideBump(tempSquare2.getPosition(),3);
 							tempSquare2 = newBoard.getSquare(tempSquare2.getPosition()+3);
 						}
 					}
 
 					tempSquare2.setPawn(tempPawn);
-					label.setText("Sorry!");
+					infoText.setText("Sorry!");
 					squareClickable = false;
 				} else {
 					//return pawn to original square
-					label.setText("You already have a pawn there");
+					infoText.setText("You already have a pawn there");
 					tempSquare.setPawn(tempPawn);
 				}
 			} else {
 				//if not occupied, move to new location
 				if (tempSquare2.getType().equals("arrow") && !(tempPawn.getColor().equals(tempSquare2.getColor()))) {
 					if (tempSquare2.getPosition()==9 || tempSquare2.getPosition()==24 || tempSquare2.getPosition()==39 || tempSquare2.getPosition()==44){
-						tempSquare2 = newBoard.getSquare(tempSquare2.getPosition()+4);
+						slideBump(tempSquare2.getPosition(),4);
+                  tempSquare2 = newBoard.getSquare(tempSquare2.getPosition()+4);
 					} else {
+                  slideBump(tempSquare2.getPosition(),3);
 						tempSquare2 = newBoard.getSquare(tempSquare2.getPosition()+3);
 					}
 				}
@@ -660,7 +854,18 @@ public class MyFrame extends JFrame {
 				squareClickable = false;
 			}
 		}
+      //method to bump all pieces in the way of a slide
+      public void slideBump(int startPosition, int slideLength) {
+         for (int i = startPosition; i < startPosition+slideLength; i++) {
+            if (newBoard.getSquare(i).hasPawn()) {
+               square tempSquare = newBoard.getSquare(newBoard.getSquare(i).getPawn().getStartPosition());
+	            tempSquare.setPawn(newBoard.getSquare(i).removePawn());
+            }
+         }
+      }
 	}
+   
+   
 
 	class ButtonListener2 implements ActionListener {
 
@@ -668,52 +873,50 @@ public class MyFrame extends JFrame {
 			if (cardClickable) {
 				currentCard = deck.dealCard();
 				switch (currentCard.getValue()) {
-				// there are special rules for numbers 2,7,10,11, and 0-->
-				// sorry!
-				// card
+				// there are special rules for numbers 2,7,10,11, and 0 (sorry! card)
 				case 0:
 					discardPile.setIcon(cardSorry);
-					label.setText("You drew a Sorry");
+					infoText.setText("You drew a Sorry");
 					break;
 				case 1:
 					discardPile.setIcon(card1);
-					label.setText("You drew a 1");
+					infoText.setText("You drew a 1");
 					break;
 				case 2:
 					discardPile.setIcon(card2);
-					label.setText("You drew a 2");
+					infoText.setText("You drew a 2");
 					break;
 				case 3:
 					discardPile.setIcon(card3);
-					label.setText("You drew a 3");
+					infoText.setText("You drew a 3");
 					break;
 				case 4:
 					discardPile.setIcon(card4);
-					label.setText("You drew a 4");
+					infoText.setText("You drew a 4");
 					break;
 				case 5:
 					discardPile.setIcon(card5);
-					label.setText("You drew a 5");
+					infoText.setText("You drew a 5");
 					break;
 				case 7:
 					discardPile.setIcon(card7);
-					label.setText("You drew a 7");
+					infoText.setText("You drew a 7");
 					break;
 				case 8:
 					discardPile.setIcon(card8);
-					label.setText("You drew a 8");
+					infoText.setText("You drew a 8");
 					break;
 				case 10:
 					discardPile.setIcon(card10);
-					label.setText("You drew a 10");
+					infoText.setText("You drew a 10");
 					break;
 				case 11:
 					discardPile.setIcon(card11);
-					label.setText("You drew an 11");
+					infoText.setText("You drew an 11");
 					break;
 				case 12:
 					discardPile.setIcon(card12);
-					label.setText("You drew a 12");
+					infoText.setText("You drew a 12");
 					break;
 				default:
 					break;
@@ -728,13 +931,18 @@ public class MyFrame extends JFrame {
 			}
 		}
 	}
-
-	class ButtonListener3 implements ActionListener {
+   //button listener for pass button
+	class PassButtonListener implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
 			if (squareClickable) {
 				squareClickable = false;
-				label.setText("You have given up your turn");
+				infoText.setText("You have given up your turn");
+            tenCard = false;
+            sorryCard = false;
+            elevenCard = false;
+            sevenCard = false;
+            shouldSplit = false;
 			}
 
 		}

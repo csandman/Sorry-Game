@@ -33,14 +33,14 @@ public class Runner {
 		frame.setLocation(dim.width/2-frame.getSize().width/2, dim.height/2-frame.getSize().height/2);
 		frame.setVisible(true);
 
-		// JFrame frame1 = new MyFrame("Help!");
-		// frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// frame1.pack();
-		// frame1.setSize(250,200);
-		// frame1.setVisible(true);
+		JFrame frame1 = new MyFrame1("Help!");
+		frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame1.pack();
+		frame1.setSize(250,200);
+		frame1.setVisible(true);
 
 		String playerName = (String)JOptionPane.showInputDialog(null,
-                    "Enter your name:\n", "Sorry! : Player Name", JOptionPane.PLAIN_MESSAGE,
+                    "Enter your name:\n", "Player Name", JOptionPane.PLAIN_MESSAGE,
                     null, null, null);
 
         // Create game objects
@@ -80,7 +80,7 @@ public class Runner {
         	{
         	  Thread.sleep(500);
         	}
-            if (pCard.getValue() == 2) {
+            while (pCard.getValue() == 2) {
             	frame.cardClickable = true;
             	frame.squareClickable = false;
 
@@ -108,7 +108,10 @@ public class Runner {
         	// Draw Card
         	frame.cardClickable = true;
         	frame.squareClickable = false;
-
+         
+         
+         // frame.panel.drawPile.doClick();
+         
         	while(frame.cardClickable)
         	{
         	  Thread.sleep(500);
@@ -125,7 +128,7 @@ public class Runner {
         	  Thread.sleep(500);
         	}
 
-            if (cCard.getValue() == 2) {
+            while (cCard.getValue() == 2) {
             	frame.cardClickable = true;
             	frame.squareClickable = false;
 
